@@ -3,6 +3,12 @@ const app = express();
 const mongoose = require("mongoose");
 const Listing = require("./models/listing");
 const MONGO_URL = 'mongodb://127.0.0.1:27017/StayHub';
+const path = require("path");
+
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "ejs");
+
+app.use(express.static("public"));
 
 main()
     .then((res) => {
@@ -17,23 +23,14 @@ async function main() {
 }
 
 app.get("/", (req, res) => {
-    res.send("Hoii, I'm root..");
+    res.redirect("/listings");
 });
 
-app.get("/testListing", async (req, res) => {
-    let sampleListing = new Listing(
-        {
-            title : "Home",
-            description : "Near the beach",
-            price : 1200,
-            location : "Goa",
-            country : "India"
-        }
-    );
 
-    await sampleListing.save();
-    console.log("SAMPLE SAVED");
-    res.send("SUCCESSFULL");
+// INDEX ROUTE
+app.get("/listings", async (req, res) => {
+    const allListings = await Listing.find({});
+    res.render("listings/index.ejs", {allListings});
 });
 
 app.listen(8080, () => {
