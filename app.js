@@ -5,6 +5,7 @@ const Listing = require("./models/listing");
 const MONGO_URL = 'mongodb://127.0.0.1:27017/StayHub';
 const path = require("path");
 const methodOverride = require("method-override");
+const ejsMate = require("ejs-mate");
 
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
@@ -12,6 +13,9 @@ app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended : true}));
 app.use(express.static("public"));
 app.use(methodOverride("_method"));
+app.use(express.static(path.join(__dirname, "/public")));
+
+app.engine("ejs", ejsMate);
 
 main()
     .then((res) => {
