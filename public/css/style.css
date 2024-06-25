@@ -94,16 +94,31 @@ body {
 }
 
 
-/* Add new Listing */
+/* Add new Listing Page */
 
 .add-btn {
     background-color: #fe424d !important;
     border: none !important;
 }
 
-/* Edit Listing */
+/* Edit Page */
 
 .edit-btn {
     background-color: #fe424d !important;
     border: none !important;
+}
+
+/* Show Page */
+
+.show-img {
+    height: 30vh;
+}
+
+.btns {
+    display: flex;
+}
+
+.show-card {
+    padding-left: 0;
+    padding-right: 0;
 }
