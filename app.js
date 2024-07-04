@@ -6,8 +6,9 @@ const MONGO_URL = 'mongodb://127.0.0.1:27017/StayHub';
 const path = require("path");
 const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
-const wrapAsync = require("./utils/wrapAsync");
-const ExpressError = require("./utils/ExpressError");
+const wrapAsync = require("./utils/wrapAsync.js");
+const ExpressError = require("./utils/ExpressError.js");
+const { listingSchema } = require("./schema.js");
 
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
@@ -35,6 +36,16 @@ app.get("/", (req, res) => {
     res.redirect("/listings");
 });
 
+const validateListing = (req, res, next) => {
+    const { error } = listingSchema.validate(req.body);
+    if (error) {
+        const errMsg = error.details.map((el) => el.message).join(",");
+        throw new ExpressError(400, errMsg);
+    } else {
+        next();
+    }
+};
+
 // INDEX ROUTE
 app.get(
     "/listings",
@@ -45,16 +56,16 @@ app.get(
 );
 
 // CREATE ROUTE
-app.get("/listings/new", (req, res) => {
+app.get(
+    "/listings/new",
+    (req, res) => {
     res.render("listings/new.ejs");
 });
 
 app.post(
     "/listings",
-    wrapAsync(async (req, res) => {
-        if(!req.body.listing){
-            throw new ExpressError(400, "Send valid data to add listing");
-        }
+    validateListing,
+    wrapAsync(async (req, res, next) => {
         const newListing = new Listing(req.body.listing);
         await newListing.save();
         res.redirect("/listings");
@@ -67,9 +78,6 @@ app.get(
     wrapAsync(async (req, res) => {
         let { id } = req.params;
         const listing = await Listing.findById(id);
-        if (!listing) {
-            throw new ExpressError(404, "Listing Not Found");
-        }
         res.render("listings/show.ejs", { listing });
     })
 );
@@ -80,9 +88,6 @@ app.get(
     wrapAsync(async (req, res) => {
         let { id } = req.params;
         const listing = await Listing.findById(id);
-        if (!listing) {
-            throw new ExpressError(404, "Listing Not Found");
-        }
         res.render("listings/edit.ejs", { listing });
     })
 );
@@ -90,10 +95,8 @@ app.get(
 // UPDATE ROUTE
 app.put(
     "/listings/:id",
+    validateListing,
     wrapAsync(async (req, res) => {
-        if(!req.body.listing){
-            throw new ExpressError(400, "Send valid data to update listing");
-        }
         let { id } = req.params;
         await Listing.findByIdAndUpdate(id, req.body.listing, { runValidators: true, new: true });
         res.redirect(`/listings/${id}`);
@@ -116,8 +119,8 @@ app.all("*", (req, res, next) => {
 
 app.use((err, req, res, next) => {
     let { statusCode = 500, message = "SOMETHING WENT WRONG" } = err;
-    res.render("error.ejs", {err});
-    // res.status(statusCode).send(message);
+    if (!err.message) err.message = 'Oh No, Something Went Wrong!';
+    res.status(statusCode).render("error.ejs", { err });
 });
 
 app.listen(8080, () => {
