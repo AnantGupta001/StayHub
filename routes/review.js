@@ -4,7 +4,7 @@ const wrapAsync = require("../utils/wrapAsync");
 const ExpressError = require("../utils/ExpressError.js");
 const Review = require("../models/review");
 const Listing = require("../models/listing");
-const {isLoggedIn, validateReview } = require("../middleware.js");
+const {isLoggedIn, validateReview, isReviewAuthor } = require("../middleware.js");
 
 // REVIEW ROUTE
 router.post(
@@ -13,10 +13,8 @@ router.post(
     validateReview, 
     wrapAsync(async (req, res) => {
         const listing = await Listing.findById(req.params.id);
-        if (!listing) {
-            throw new ExpressError(404, "Listing Not Found");
-        }
         const newReview = new Review(req.body.review);
+        newReview.author = req.user._id;
         listing.reviews.push(newReview);
         await newReview.save();
         await listing.save();
@@ -29,6 +27,7 @@ router.post(
 router.delete(
     "/:reviewId",
     isLoggedIn, 
+    isReviewAuthor,
     wrapAsync(async (req, res) => {
         const { id, reviewId } = req.params;
         await Listing.findByIdAndUpdate(id, { $pull: { reviews: reviewId } });
