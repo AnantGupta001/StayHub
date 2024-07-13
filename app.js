@@ -1,3 +1,6 @@
+if(process.env.NODE_ENV != 'production'){
+    require('dotenv').config();
+}
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
@@ -14,8 +17,6 @@ const User = require("./models/user.js");
 const listingsRouter = require("./routes/listing.js");
 const reviewsRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
-
-const MONGO_URL = 'mongodb://127.0.0.1:27017/StayHub';
 
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
@@ -51,7 +52,7 @@ main()
     .catch(err => console.error(err));
 
 async function main() {
-    await mongoose.connect(MONGO_URL);
+    await mongoose.connect(process.env.MONGO_URL);
 }
 
 app.get("/", (req, res) => {
@@ -78,6 +79,6 @@ app.use((err, req, res, next) => {
     res.status(statusCode).render("error", { err });
 });
 
-app.listen(8080, () => {
+app.listen(process.env.PORT, () => {
     console.log("Server is listening...");
 });
