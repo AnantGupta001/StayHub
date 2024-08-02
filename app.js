@@ -55,10 +55,6 @@ async function main() {
     await mongoose.connect(process.env.MONGO_URL);
 }
 
-app.get("/", (req, res) => {
-    res.send("Hi,. I'm root route");;
-});
-
 app.use((req, res, next) => {
     res.locals.success = req.flash("success");
     res.locals.error = req.flash("error");
